@@ -9,7 +9,6 @@ from src.api.chatflow.router import router as chatflow_router
 from src.api.embeddings.router import router as embeddings_router
 from src.config import settings
 from src.database.db import engine, test_db_connection
-from src.services.google_sheets import GoogleSheetsService
 from src.shared.schemas import HealthResponse
 
 log_level = settings.LOG_LEVEL.upper()
@@ -37,13 +36,6 @@ async def lifespan(app: FastAPI):
         )
     else:
         logger.debug("Database connection successful.")
-
-    try:
-        app.state.sheets_service = GoogleSheetsService()
-        logger.info("Google Sheets Service initialized.")
-    except Exception as e:
-        logger.error(f"Failed to initialize Google Sheets Service: {e}")
-        app.state.sheets_service = None
 
     yield
     # Shutdown
@@ -86,10 +78,8 @@ async def health_check(request: Request):
     Checks the health of the application and its database connection.
     """
     db_ok = await test_db_connection()
-    sheets_ok = request.app.state.sheets_service is not None
 
     return HealthResponse(
         status="ok",
         db_connection="ok" if db_ok else "failed",
-        sheets_connection="ok" if sheets_ok else "failed",
     )

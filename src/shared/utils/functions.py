@@ -1,15 +1,10 @@
-import datetime
-import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, SystemMessage, BaseMessage
 from langchain_core.tools import BaseTool
 
-from src.config import settings
-from src.services.google_sheets import GoogleSheetsService
-from src.shared.enums import InteractionType
 from src.shared.schemas import InteractionMessage
 from src.shared.utils.history import get_langchain_history
 
@@ -97,54 +92,3 @@ async def generate_response_text(
     except Exception as e:
         logger.error(f"Error in generate_response_text: {e}")
         return ""
-
-async def write_candidato_a_empleo_to_sheet(
-    interaction_data: dict,
-    conversation: List[InteractionMessage],
-    sheets_service: Optional[GoogleSheetsService]
-):
-    if interaction_data.get("sheet_row_added"):
-        logger.info("Data for this conversation was added to sheet. Skipping write.")
-        return
-
-    if not settings.GOOGLE_SHEET_ID_EXPORT or not sheets_service:
-        logger.warning(
-            "Spreadsheet ID for export not configured or sheets service not available. Skipping write."
-        )
-        return
-
-    try:
-        worksheet = sheets_service.get_worksheet(
-            spreadsheet_id=settings.GOOGLE_SHEET_ID_EXPORT,
-            worksheet_name="TESTS",
-        )
-        if not worksheet:
-            logger.error("Could not find TESTS worksheet.")
-            return
-
-        date_and_time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
-        user_data = interaction_data.get("user_data") or {}
-        name = user_data.get("name")
-        email = user_data.get("email")
-
-        conversation_lines = []
-        for msg in conversation:
-            if msg.role == InteractionType.USER:
-                conversation_lines.append(f"User: {msg.message}")
-            elif msg.role == InteractionType.MODEL:
-                conversation_lines.append(f"Linden: {msg.message}")
-        conversation_str = "\n".join(conversation_lines)
-
-        row_to_append = [
-            date_and_time,
-            name,
-            email,
-            conversation_str,
-        ]
-
-        sheets_service.append_row(worksheet, row_to_append)
-        interaction_data["sheet_row_added"] = True
-        logger.info("Successfully wrote data for job candidate to Google Sheet and marked as added.")
-
-    except Exception as e:
-        logger.error(f"Failed to write to Google Sheet: {e}", exc_info=True)
