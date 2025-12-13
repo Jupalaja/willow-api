@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 STATES_TO_SKIP_USER_DATA=[
     ChatflowState.INTENT_OUT_OF_SCOPE_QUESTION,
     ChatflowState.INTENT_GENERAL_FAQ_QUESTION,
+    ChatflowState.INTENT_FRUSTRATED_CUSTOMER,
 ]
 
 async def _send_message(
@@ -173,11 +174,11 @@ async def frustrated_customer_workflow(
     interaction_data: dict,
     model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
-    return await _send_message(
-        history_messages,
-        model,
-        PROMPT_FRUSTRATED_CUSTOMER_OFFER_BOOK_CALL,
+    interaction_data["frustrated_response"] = PROMPT_FRUSTRATED_CUSTOMER_OFFER_BOOK_CALL
+    return (
+        [],
         ChatflowState.OFFER_BOOK_CALL,
+        None,
         interaction_data,
     )
 
@@ -194,8 +195,9 @@ async def out_of_scope_workflow(
         CHATFLOW_SYSTEM_PROMPT,
         context=context,
     )
+    interaction_data["out_of_scope_response"] = response_text
     return (
-        [InteractionMessage(role=InteractionType.MODEL, message=response_text)],
+        [],
         ChatflowState.OFFER_BOOK_CALL,
         None,
         interaction_data,
@@ -260,10 +262,59 @@ async def offer_book_call_workflow(
     interaction_data: dict,
     model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
+    frustrated_resp = interaction_data.get("frustrated_response")
+    out_of_scope_resp = interaction_data.get("out_of_scope_response")
+    embeddings_resp = interaction_data.get("embeddings_response")
+
+    context_parts = ["Create a natural, cohesive response that includes:"]
+
+    has_content = False
+    if frustrated_resp:
+        context_parts.append(f"- This apology/acknowledgment: {frustrated_resp}")
+        has_content = True
+
+    if out_of_scope_resp:
+        context_parts.append(f"- This information: {out_of_scope_resp}")
+        has_content = True
+
+    if embeddings_resp:
+        context_parts.append(f"- This information from knowledge base: {embeddings_resp}")
+        has_content = True
+
+    context_parts.append(f"- This offer to book a call: {PROMPT_OFFER_BOOK_CALL}")
+    context_parts.append(
+        "\nCreate a single, flowing response. Integrate the acknowledgment or information with the offer to book a call.")
+    context = "\n".join(context_parts)
+
+    full_message = None
+
+    if has_content:
+        full_message = await generate_response_text(
+            history_messages,
+            model,
+            CHATFLOW_SYSTEM_PROMPT,
+            context=context,
+        )
+
+    if not full_message:
+        message_parts = []
+        if frustrated_resp:
+            message_parts.append(frustrated_resp)
+        if out_of_scope_resp:
+            message_parts.append(out_of_scope_resp)
+        if embeddings_resp:
+            message_parts.append(embeddings_resp)
+        message_parts.append(PROMPT_OFFER_BOOK_CALL)
+        full_message = "\n\n".join(message_parts)
+
+    interaction_data.pop("frustrated_response", None)
+    interaction_data.pop("out_of_scope_response", None)
+    interaction_data.pop("embeddings_response", None)
+
     return await _send_message(
         history_messages,
         model,
-        PROMPT_OFFER_BOOK_CALL,
+        full_message,
         ChatflowState.AWAITING_BOOK_CALL_OFFER_RESPONSE,
         interaction_data,
     )
