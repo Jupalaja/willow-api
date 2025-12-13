@@ -326,15 +326,29 @@ async def book_call_link_accepted_workflow(
     if booking_link_text:
         interaction_data["sent_book_call_link"] = True
 
+    # Retrieve accumulated data from previous states
+    bot_creation_resp = interaction_data.get("bot_creation_response")
+    account_creation_resp = interaction_data.get("account_creation_response")
+    pricing_resp = interaction_data.get("pricing_response")
+
     # Generate a friendly response including the link and the newsletter offer
-    context_parts = ["Create a natural, cohesive response that:"]
+    context_parts = ["Create a natural, cohesive response that includes:"]
+
+    if bot_creation_resp:
+        context_parts.append(f"- This acknowledgment: {bot_creation_resp}")
+
+    if pricing_resp:
+        context_parts.append(f"- This pricing info: {pricing_resp}")
+
+    if account_creation_resp:
+        context_parts.append(f"- This account creation info: {account_creation_resp}")
 
     if booking_link_text:
-        context_parts.append(f"- Includes this booking information: {booking_link_text}")
+        context_parts.append(f"- This booking information: {booking_link_text}")
 
-    context_parts.append(f"- Includes this newsletter offer: {PROMPT_OFFER_NEWSLETTER}")
+    context_parts.append(f"- This newsletter offer: {PROMPT_OFFER_NEWSLETTER}")
     context_parts.append(
-        "\nCreate a single, flowing response. Just provide a welcoming message before the booking link and newsletter offer.")
+        "\nCreate a single, flowing response. Just provide a welcoming message before the booking link and newsletter offer, integrating all parts naturally.")
     context = "\n".join(context_parts)
 
     full_message = await generate_response_text(
@@ -347,11 +361,23 @@ async def book_call_link_accepted_workflow(
     if not full_message:
         # Fallback if generation fails
         message_parts = []
-        message_parts.append("Great! I can help with that.")
+        if bot_creation_resp:
+            message_parts.append(bot_creation_resp)
+        if pricing_resp:
+            message_parts.append(pricing_resp)
+        if account_creation_resp:
+            message_parts.append(account_creation_resp)
+        if not message_parts:
+            message_parts.append("Great! I can help with that.")
         if booking_link_text:
             message_parts.append(booking_link_text)
         message_parts.append(PROMPT_OFFER_NEWSLETTER)
         full_message = "\n\n".join(message_parts)
+
+    # Cleanup used interaction data
+    interaction_data.pop("bot_creation_response", None)
+    interaction_data.pop("account_creation_response", None)
+    interaction_data.pop("pricing_response", None)
 
     return await _send_message(
         history_messages,
@@ -421,8 +447,9 @@ async def intent_question_bot_creation_workflow(
         CHATFLOW_SYSTEM_PROMPT,
         context="The user is interested in creating a bot. Provide a very short, friendly, and enthusiastic response acknowledging their interest.",
     )
+    interaction_data["bot_creation_response"] = response_text
     return (
-        [InteractionMessage(role=InteractionType.MODEL, message=response_text)],
+        [],
         ChatflowState.INVITE_CREATE_ACCOUNT,
         None,
         interaction_data,
@@ -434,11 +461,11 @@ async def invite_create_account_workflow(
     interaction_data: dict,
     model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
-    return await _send_message(
-        history_messages,
-        model,
-        PROMPT_INVITE_CREATE_ACCOUNT,
+    interaction_data["account_creation_response"] = PROMPT_INVITE_CREATE_ACCOUNT
+    return (
+        [],
         ChatflowState.BOOK_CALL_OFFER_ACCEPTED,
+        None,
         interaction_data,
     )
 
@@ -448,10 +475,10 @@ async def intent_question_pricing_workflow(
     interaction_data: dict,
     model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
-    return await _send_message(
-        history_messages,
-        model,
-        PROMPT_INTENT_QUESTION_PRICING,
+    interaction_data["pricing_response"] = PROMPT_INTENT_QUESTION_PRICING
+    return (
+        [],
         ChatflowState.BOOK_CALL_OFFER_ACCEPTED,
+        None,
         interaction_data,
     )
