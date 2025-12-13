@@ -115,7 +115,7 @@ async def ask_user_data_workflow(
         # We want to re-evaluate the intent of the message that triggered the data request.
         # So we exclude the last message (User providing data) and the one before (Model requesting data).
         classification_history = history_messages
-        if len(history_messages) > 2:
+        if len(history_messages) >= 3:
             classification_history = history_messages[:-2]
 
         # Check for refusal
