@@ -41,19 +41,6 @@ class Settings(BaseSettings):
             return v.strip('"')
         return v
 
-    # Google Sheets
-    GOOGLE_SA_TYPE: str = "service_account"
-    GOOGLE_SA_PROJECT_ID: str
-    GOOGLE_SA_PRIVATE_KEY_ID: str
-    GOOGLE_SA_PRIVATE_KEY: str
-    GOOGLE_SA_CLIENT_EMAIL: str
-    GOOGLE_SA_CLIENT_ID: str
-    GOOGLE_SA_AUTH_URI: str
-    GOOGLE_SA_TOKEN_URI: str
-    GOOGLE_SA_AUTH_PROVIDER_X509_CERT_URL: str
-    GOOGLE_SA_CLIENT_X509_CERT_URL: str
-    GOOGLE_SHEET_ID_EXPORT: Optional[str] = None
-
     # Firecrawl
     FIRECRAWL_API_KEY: Optional[str] = None
 

@@ -1,4 +1,8 @@
+import logging
+from typing import Optional
+
 from .workflows import *
+from .state import ChatflowState
 from src.shared.schemas import InteractionMessage
 from langchain_core.language_models import BaseChatModel
 
@@ -7,9 +11,7 @@ logger = logging.getLogger(__name__)
 # Define states that should pause the conversation flow and await user input
 STATES_AWAITING_USER_INPUT = {
     ChatflowState.ASK_USER_DATA,
-    ChatflowState.GET_USER_DATA,
     ChatflowState.CLASSIFYING_INTENT,
-    ChatflowState.VALIDATE_STATE,
     ChatflowState.AWAITING_BOOK_CALL_OFFER_RESPONSE,
     ChatflowState.AWAITING_NEW_MESSAGE,
 }
@@ -27,19 +29,12 @@ async def handle_chatflow(
     workflow_map = {
         ChatflowState.IDLE: idle_workflow,
         ChatflowState.CLASSIFYING_INTENT: intent_classification_workflow,
-        ChatflowState.INTENT_QUESTION_CONDITION: question_condition_workflow,
-        ChatflowState.PROVIDE_CONDITION_INFORMATION: provide_condition_information_workflow,
         ChatflowState.ASK_USER_DATA: ask_user_data_workflow,
         ChatflowState.INTENT_FRUSTRATED_CUSTOMER: frustrated_customer_workflow,
         ChatflowState.INTENT_OUT_OF_SCOPE_QUESTION: out_of_scope_workflow,
-        ChatflowState.RECOMMENDED_DOCTOR: recommended_doctor_workflow,
         ChatflowState.REPLY_FROM_EMBEDDINGS: reply_from_embeddings_workflow,
         ChatflowState.CUSTOMER_ACKNOWLEDGES_RESPONSE: customer_acknowledges_workflow,
-        ChatflowState.CONDITION_NOT_TREATED_SEND_CONTACT_INFO: condition_not_treated_workflow,
-        ChatflowState.INTENT_EVENT_QUESTION: event_question_workflow,
         ChatflowState.INTENT_GENERAL_FAQ_QUESTION: general_faq_question_workflow,
-        ChatflowState.INVALID_REQUEST_EMERGENCY: emergency_workflow,
-        ChatflowState.VALIDATE_STATE: validate_state_workflow,
         ChatflowState.OFFER_BOOK_CALL: offer_book_call_workflow,
         ChatflowState.AWAITING_NEW_MESSAGE: await_new_message_workflow,
         ChatflowState.AWAITING_BOOK_CALL_OFFER_RESPONSE: await_book_call_response_workflow,
@@ -48,6 +43,9 @@ async def handle_chatflow(
         ChatflowState.INTENT_MAILING_LIST: intent_mailing_list_workflow,
         ChatflowState.INTENT_GOODBYE: goodbye_workflow,
         ChatflowState.FINAL: final_workflow,
+        ChatflowState.INTENT_QUESTION_BOT_CREATION: intent_question_bot_creation_workflow,
+        ChatflowState.INTENT_QUESTION_PRICING: intent_question_pricing_workflow,
+        ChatflowState.INVITE_CREATE_ACCOUNT: invite_create_account_workflow,
     }
 
     all_new_messages = []

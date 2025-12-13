@@ -90,14 +90,12 @@ async def handle(
         temperature=0,
     )
 
-    sheets_service = request.app.state.sheets_service
     response_messages, new_states, tool_call, interaction_data = await handle_chatflow(
         session_id=session_id,
         history_messages=history_messages,
         current_state=current_state,
         interaction_data=interaction_data,
         model=openai_model,
-        sheets_service=sheets_service,
     )
 
     logger.debug(f"Interaction data after handle_chatflow: {interaction_data}")
