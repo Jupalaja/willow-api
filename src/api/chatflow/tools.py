@@ -24,7 +24,7 @@ def classify_intent(intent: ConversationType) -> ConversationType:
     - is_general_faq_question: User asks a general question about the services included, the internal workings of the agent, the AI (Artificial Intelligence) services or LLM (Large Language Model) used.
     - is_out_of_scope_question: User asks a question for which information is not available in the context. If the question cannot be answered using the provided context, use this classification.
     - is_frustrated_needs_human: User expresses frustration, wants to speak to a person, or is dissatisfied with bot responses.
-    - is_bot_creation_request: User expresses the desire to build a bot or says that is interested in MedbotPro's services.
+    - is_bot_creation_request: User greets, or expresses the desire to build a bot or says that is interested in MedbotPro's services.
     - is_mailing_list: User expresses that wants to be added to the mailing list.
     - is_goodbye: User says goodbye or indicates the conversation is over.
 

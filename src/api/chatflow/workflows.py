@@ -111,17 +111,24 @@ async def ask_user_data_workflow(
             current_user_data["email"] = extracted_data["email"]
         interaction_data["user_data"] = current_user_data
 
+        # Determine history for classification
+        # We want to re-evaluate the intent of the message that triggered the data request.
+        # So we exclude the last message (User providing data) and the one before (Model requesting data).
+        classification_history = history_messages
+        if len(history_messages) > 2:
+            classification_history = history_messages[:-2]
+
         # Check for refusal
         if extracted_data.get("name") == "" or extracted_data.get("email") == "":
             interaction_data["data_refused"] = True
             # Proceed to intent classification as if data collection is done (skipped)
             return await intent_classification_workflow(
-                history_messages, interaction_data, model
+                classification_history, interaction_data, model
             )
 
         # If we got data, we proceed to intent classification
         new_messages, new_state, tool_call, interaction_data = await intent_classification_workflow(
-            history_messages, interaction_data, model
+            classification_history, interaction_data, model
         )
 
         if new_state == ChatflowState.ASK_USER_DATA:
