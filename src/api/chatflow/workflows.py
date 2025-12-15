@@ -74,7 +74,6 @@ async def intent_classification_workflow(
         "is_frustrated_needs_human": ChatflowState.INTENT_FRUSTRATED_CUSTOMER,
         "is_acknowledgment": ChatflowState.CUSTOMER_ACKNOWLEDGES_RESPONSE,
         "is_goodbye": ChatflowState.INTENT_GOODBYE,
-        "is_mailing_list": ChatflowState.INTENT_MAILING_LIST,
         "is_bot_creation_request": ChatflowState.INTENT_QUESTION_BOT_CREATION,
     }
     next_state = state_map.get(
@@ -170,9 +169,9 @@ async def ask_user_data_workflow(
 
 
 async def frustrated_customer_workflow(
-    history_messages: list[InteractionMessage],
+    _history_messages: list[InteractionMessage],
     interaction_data: dict,
-    model: BaseChatModel,
+    _model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
     interaction_data["frustrated_response"] = PROMPT_FRUSTRATED_CUSTOMER_OFFER_BOOK_CALL
     return (
@@ -205,16 +204,14 @@ async def out_of_scope_workflow(
 
 
 async def reply_from_embeddings_workflow(
-    history_messages: list[InteractionMessage],
+    _history_messages: list[InteractionMessage],
     interaction_data: dict,
-    model: BaseChatModel,
+    _model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
-    embeddings_response = interaction_data.get("embeddings_response", "")
-    return await _send_message(
-        history_messages,
-        model,
-        embeddings_response,
+    return (
+        [],
         ChatflowState.OFFER_BOOK_CALL,
+        None,
         interaction_data,
     )
 
@@ -352,7 +349,7 @@ async def book_call_declined_workflow(
     interaction_data: dict,
     model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
-    full_message = f"{PROMPT_PROVIDE_CONTACT_INFO}\n\n{PROMPT_OFFER_NEWSLETTER}"
+    full_message = PROMPT_PROVIDE_CONTACT_INFO
     return await _send_message(
         history_messages,
         model,
@@ -382,7 +379,6 @@ async def book_call_link_accepted_workflow(
     account_creation_resp = interaction_data.get("account_creation_response")
     pricing_resp = interaction_data.get("pricing_response")
 
-    # Generate a friendly response including the link and the newsletter offer
     context_parts = ["Create a natural, cohesive response that includes:"]
 
     if bot_creation_resp:
@@ -397,9 +393,8 @@ async def book_call_link_accepted_workflow(
     if booking_link_text:
         context_parts.append(f"- This booking information: {booking_link_text}")
 
-    context_parts.append(f"- This newsletter offer: {PROMPT_OFFER_NEWSLETTER}")
     context_parts.append(
-        "\nCreate a single, flowing response. Just provide a welcoming message before the booking link and newsletter offer, integrating all parts naturally.")
+        "\nCreate a single, flowing response. Just provide a welcoming message before the booking link, integrating all parts naturally.")
     context = "\n".join(context_parts)
 
     full_message = await generate_response_text(
@@ -422,7 +417,6 @@ async def book_call_link_accepted_workflow(
             message_parts.append("Great! I can help with that.")
         if booking_link_text:
             message_parts.append(booking_link_text)
-        message_parts.append(PROMPT_OFFER_NEWSLETTER)
         full_message = "\n\n".join(message_parts)
 
     # Cleanup used interaction data
@@ -435,31 +429,6 @@ async def book_call_link_accepted_workflow(
         model,
         full_message,
         ChatflowState.AWAITING_NEW_MESSAGE,
-        interaction_data,
-    )
-
-
-async def intent_mailing_list_workflow(
-    history_messages: list[InteractionMessage],
-    interaction_data: dict,
-    model: BaseChatModel,
-) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
-    langchain_messages = get_langchain_history(history_messages)
-    await call_single_tool(
-        langchain_messages, model, save_to_mailing_list, CHATFLOW_SYSTEM_PROMPT
-    )
-
-    full_message = PROMPT_ADDED_TO_MAILING_LIST
-
-    response_message = InteractionMessage(
-        role=InteractionType.MODEL, message=full_message
-    )
-    full_conversation = history_messages + [response_message]
-
-    return (
-        [response_message],
-        ChatflowState.AWAITING_NEW_MESSAGE,
-        None,
         interaction_data,
     )
 
@@ -508,9 +477,9 @@ async def intent_question_bot_creation_workflow(
 
 
 async def invite_create_account_workflow(
-    history_messages: list[InteractionMessage],
+    _history_messages: list[InteractionMessage],
     interaction_data: dict,
-    model: BaseChatModel,
+    _model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
     interaction_data["account_creation_response"] = PROMPT_INVITE_CREATE_ACCOUNT
     return (
@@ -522,9 +491,9 @@ async def invite_create_account_workflow(
 
 
 async def intent_question_pricing_workflow(
-    history_messages: list[InteractionMessage],
+    _history_messages: list[InteractionMessage],
     interaction_data: dict,
-    model: BaseChatModel,
+    _model: BaseChatModel,
 ) -> tuple[list[InteractionMessage], ChatflowState, str | None, dict]:
     interaction_data["pricing_response"] = PROMPT_INTENT_QUESTION_PRICING
     return (

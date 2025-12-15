@@ -1,6 +1,3 @@
-import logging
-from typing import Optional
-
 from .workflows import *
 from .state import ChatflowState
 from src.shared.schemas import InteractionMessage
@@ -40,7 +37,6 @@ async def handle_chatflow(
         ChatflowState.AWAITING_BOOK_CALL_OFFER_RESPONSE: await_book_call_response_workflow,
         ChatflowState.BOOK_CALL_OFFER_DECLINED: book_call_declined_workflow,
         ChatflowState.BOOK_CALL_OFFER_ACCEPTED: book_call_link_accepted_workflow,
-        ChatflowState.INTENT_MAILING_LIST: intent_mailing_list_workflow,
         ChatflowState.INTENT_GOODBYE: goodbye_workflow,
         ChatflowState.FINAL: final_workflow,
         ChatflowState.INTENT_QUESTION_BOT_CREATION: intent_question_bot_creation_workflow,

@@ -9,7 +9,6 @@ ConversationType = Literal[
     "is_out_of_scope_question",
     "is_frustrated_needs_human",
     "is_bot_creation_request",
-    "is_mailing_list",
     "is_goodbye",
 ]
 
@@ -25,7 +24,6 @@ def classify_intent(intent: ConversationType) -> ConversationType:
     - is_out_of_scope_question: User asks a question for which information is not available in the context. If the question cannot be answered using the provided context, use this classification.
     - is_frustrated_needs_human: User expresses frustration, wants to speak to a person, or is dissatisfied with bot responses.
     - is_bot_creation_request: User greets (e.g. "Hi", "Hello"), or expresses the desire to build a bot or says that is interested in MedbotPro's services.
-    - is_mailing_list: User expresses that wants to be added to the mailing list.
     - is_goodbye: User says goodbye or indicates the conversation is over.
 
     Args:
@@ -52,17 +50,6 @@ def user_accepts_book_call(user_accepts: bool) -> bool:
         user_accepts: True if user wants to book discovery call, False if declining
     """
     return user_accepts
-
-
-@tool
-def save_to_mailing_list() -> str:
-    """Use this tool to save the user to the newsletter mailing list after they have accepted.
-
-    Only call this tool AFTER user_accepts_newsletter() returns True.
-    This will add them to receive monthly health tips, recipes, hormone/mood support info,
-    retreat updates, and news about new services like biofeedback.
-    """
-    return "Perfect! You've been added to our mailing list"
 
 
 @tool
