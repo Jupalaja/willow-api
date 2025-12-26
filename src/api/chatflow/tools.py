@@ -64,9 +64,9 @@ def send_book_call_link() -> str:
     - Determination of next steps for building the chat assistant
     - Completely free with no obligation
 
-    The booking link is: https://cal.com/jupalaja
+    The booking link is: https://book.vtwebmarketing.com/#/medbotpro
     """
-    return "Here's the **[Link to Book a Call](https://cal.com/jupalaja)**"
+    return "Here's the **[Link to Book a Call](https://book.vtwebmarketing.com/#/medbotpro)**"
 
 
 @tool
