@@ -36,7 +36,7 @@ def _sanitize_for_doc_id(text: str) -> str:
     return regex.sub(r'[^a-zA-Z0-9]+', '_', text.lower()).strip('_')
 
 
-def store_data_from_qa_pair(qa_pair: QAPair, practice_id: str):
+def store_data_from_qa_pair(qa_pair: QAPair, practice_id: int):
     """
     Stores a Q&A pair in Chroma.
     """
@@ -85,7 +85,7 @@ def store_data_from_qa_pair(qa_pair: QAPair, practice_id: str):
         raise
 
 
-def store_data_from_document(document_data: DocumentData, practice_id: str):
+def store_data_from_document(document_data: DocumentData, practice_id: int):
     """
     Processes a document and stores its content in Chroma.
     """
@@ -159,7 +159,7 @@ def store_data_from_document(document_data: DocumentData, practice_id: str):
         raise
 
 
-def store_data_from_website(website: str, practice_id: str):
+def store_data_from_website(website: str, practice_id: int):
     """
     Scrapes a website and stores its content in Chroma.
     """
@@ -245,7 +245,7 @@ def store_data_from_website(website: str, practice_id: str):
         raise
 
 
-def delete_data_from_document(document_name: str, practice_id: str) -> int:
+def delete_data_from_document(document_name: str, practice_id: int) -> int:
     """
     Deletes all chunks of a document from Chroma based on the document name and practice ID.
     Returns the number of documents deleted.
@@ -280,7 +280,7 @@ def delete_data_from_document(document_name: str, practice_id: str) -> int:
         raise
 
 
-def delete_data_from_qa_pair(question: str, practice_id: str) -> int:
+def delete_data_from_qa_pair(question: str, practice_id: int) -> int:
     """
     Deletes a Q&A pair from Chroma based on the question and practice ID.
     Returns the number of documents deleted.
@@ -315,7 +315,7 @@ def delete_data_from_qa_pair(question: str, practice_id: str) -> int:
         raise
 
 
-def delete_data_from_website(website: str, practice_id: str) -> int:
+def delete_data_from_website(website: str, practice_id: int) -> int:
     """
     Deletes all documents from Chroma that are associated with a specific website URL and practice ID.
     Returns the number of documents deleted.
@@ -349,7 +349,7 @@ def delete_data_from_website(website: str, practice_id: str) -> int:
         raise
 
 
-def retrieve_data(query: str, practice_id: str, filters: Optional[Dict[str, Any]] = None) -> tuple[str, bool]:
+def retrieve_data(query: str, practice_id: int, filters: Optional[Dict[str, Any]] = None) -> tuple[str, bool]:
     """
     Retrieves data from the vector store based on a query and optional filters,
     and generates a response using an LLM.
