@@ -19,7 +19,7 @@ class InteractionMessage(BaseModel):
 
 class InteractionRequest(BaseModel):
     sessionId: str = Field(..., min_length=4)
-    practiceId: Optional[str] = None
+    practiceId: Optional[int] = None
     message: InteractionMessage
     user_data: Optional[Dict[str, Any]] = None
 
@@ -49,7 +49,7 @@ class SourceData(BaseModel):
 
 
 class CreateEmbeddingsRequest(BaseModel):
-    practiceId: str
+    practiceId: int
     sourceType: SourceType
     sourceData: SourceData
 
@@ -60,7 +60,7 @@ class CreateEmbeddingsResponse(BaseModel):
 
 
 class DeleteEmbeddingsRequest(BaseModel):
-    practiceId: str
+    practiceId: int
     sourceType: SourceType
     sourceData: SourceData
 
